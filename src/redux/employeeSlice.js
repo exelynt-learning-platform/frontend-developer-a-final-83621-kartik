@@ -1,13 +1,23 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_URL = "https://669b3f09276e45187d34eb4e.mockapi.io/api/v1/employee";
+const API_URL =
+  "https://669b3f09276e45187d34eb4e.mockapi.io/api/v1/employee";
 
-// Get employees
+// Get all employees
 export const getEmployees = createAsyncThunk(
   "employees/getEmployees",
   async () => {
     const response = await axios.get(API_URL);
+    return response.data;
+  }
+);
+
+// Get employee by id
+export const getEmployeeById = createAsyncThunk(
+  "employees/getEmployeeById",
+  async (id) => {
+    const response = await axios.get(`${API_URL}/${id}`);
     return response.data;
   }
 );
@@ -21,48 +31,6 @@ export const addEmployee = createAsyncThunk(
   }
 );
 
-// export const addEmployee = createAsyncThunk(
-//   "employees/addEmployee",
-//   async (employee) => {
-//     const response = await axios.get(API_URL);
-
-//     const employees = response.data;
-
-//     const newId = employees.length + 1;
-
-//     const newEmployee = {
-//       ...employee,
-//       id: String(newId),
-//     };
-
-//     const result = await axios.post(API_URL, newEmployee);
-
-//     return result.data;
-//   }
-// );
-
-
-// export const addEmployee = createAsyncThunk(
-//   "employees/addEmployee",
-//   async (employee) => {
-//     const response = await axios.get(API_URL);
-
-//     const employees = response.data;
-
-//     const newId = String(employees.length + 1);
-
-//     const newEmployee = {
-//       id: newId,
-//       ...employee,
-//     };
-
-//     console.log("Sending:", newEmployee);
-
-//     const result = await axios.post(API_URL, newEmployee);
-
-//     return result.data;
-//   }
-// );
 // Update employee
 export const updateEmployee = createAsyncThunk(
   "employees/updateEmployee",
@@ -90,14 +58,20 @@ const employeeSlice = createSlice({
 
   initialState: {
     list: [],
+    searchEmployee: null,
     loading: false,
     error: null,
   },
 
-  reducers: {},
+  reducers: {
+    clearSearch: (state) => {
+      state.searchEmployee = null;
+    },
+  },
 
   extraReducers: (builder) => {
     builder
+
       .addCase(getEmployees.pending, (state) => {
         state.loading = true;
       })
@@ -109,7 +83,24 @@ const employeeSlice = createSlice({
 
       .addCase(getEmployees.rejected, (state) => {
         state.loading = false;
-        state.error = "Data not load";
+        state.error = "Employee data not found";
+      })
+
+      .addCase(getEmployeeById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.searchEmployee = null;
+      })
+
+      .addCase(getEmployeeById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.searchEmployee = action.payload;
+      })
+
+      .addCase(getEmployeeById.rejected, (state) => {
+        state.loading = false;
+        state.searchEmployee = null;
+        state.error = "Employee not found";
       })
 
       .addCase(addEmployee.fulfilled, (state, action) => {
@@ -133,5 +124,7 @@ const employeeSlice = createSlice({
       });
   },
 });
+
+export const { clearSearch } = employeeSlice.actions;
 
 export default employeeSlice.reducer;

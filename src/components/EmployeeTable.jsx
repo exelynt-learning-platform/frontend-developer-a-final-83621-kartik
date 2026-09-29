@@ -1,7 +1,8 @@
-
 import { useDispatch } from "react-redux";
 
-import { deleteEmployee } from "../redux/employeeSlice";
+import {
+  deleteEmployee,
+} from "../redux/employeeSlice";
 
 import {
   Table,
@@ -14,18 +15,25 @@ import {
   Button,
 } from "@mui/material";
 
-function EmployeeTable({ employees, setSelectedEmployee }) {
+function EmployeeTable({
+  employees,
+  setSelectedEmployee,
+}) {
   const dispatch = useDispatch();
 
   const handleDelete = (id) => {
     const result = window.confirm(
-      "तुम्हाला employee delete करायचा आहे का?"
+      "Are you sure you want to delete this employee?"
     );
 
     if (result) {
       dispatch(deleteEmployee(id));
     }
   };
+
+  if (employees.length === 0) {
+    return <p>No employees found.</p>;
+  }
 
   return (
     <TableContainer component={Paper}>
@@ -37,31 +45,61 @@ function EmployeeTable({ employees, setSelectedEmployee }) {
             <TableCell>Email</TableCell>
             <TableCell>Mobile</TableCell>
             <TableCell>Country</TableCell>
+            <TableCell>State</TableCell>
+            <TableCell>District</TableCell>
             <TableCell>Action</TableCell>
           </TableRow>
         </TableHead>
 
         <TableBody>
-          {employees.map((employee, index) => (
+          {employees.map((employee) => (
             <TableRow key={employee.id}>
-              {/* Serial number */}
-              <TableCell>{index + 1}</TableCell>
+              <TableCell>
+                {employee.id}
+              </TableCell>
 
-              <TableCell>{employee.name}</TableCell>
-              <TableCell>{employee.email}</TableCell>
-              <TableCell>{employee.mobile}</TableCell>
-              <TableCell>{employee.country}</TableCell>
+              <TableCell>
+                {employee.name}
+              </TableCell>
+
+              <TableCell>
+                {employee.email}
+              </TableCell>
+
+              <TableCell>
+                {employee.mobile}
+              </TableCell>
+
+              <TableCell>
+                {employee.country}
+              </TableCell>
+
+              <TableCell>
+                {employee.state}
+              </TableCell>
+
+              <TableCell>
+                {employee.district}
+              </TableCell>
 
               <TableCell>
                 <Button
-                  onClick={() => setSelectedEmployee(employee)}
+                  onClick={() =>
+                    setSelectedEmployee(
+                      employee
+                    )
+                  }
                 >
                   Edit
                 </Button>
 
                 <Button
                   color="error"
-                  onClick={() => handleDelete(employee.id)}
+                  onClick={() =>
+                    handleDelete(
+                      employee.id
+                    )
+                  }
                 >
                   Delete
                 </Button>
@@ -75,4 +113,3 @@ function EmployeeTable({ employees, setSelectedEmployee }) {
 }
 
 export default EmployeeTable;
-

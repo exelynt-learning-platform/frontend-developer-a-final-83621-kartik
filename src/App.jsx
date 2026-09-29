@@ -1,91 +1,92 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+
+import {
+  useDispatch,
+  useSelector,
+} from "react-redux";
 
 import { getEmployees } from "./redux/employeeSlice";
 
 import EmployeeForm from "./components/EmployeeForm";
 import EmployeeTable from "./components/EmployeeTable";
+import SearchEmployee from "./components/SerchEmployee";
 
 import {
   Container,
   Typography,
   CircularProgress,
+  Alert,
+  Box,
 } from "@mui/material";
 
 function App() {
   const dispatch = useDispatch();
 
-  const { list, loading, error } = useSelector(
+  const {
+    list,
+    loading,
+    error,
+  } = useSelector(
     (state) => state.employees
   );
 
-  const [selectedEmployee, setSelectedEmployee] = useState(null); 
+  const [
+    selectedEmployee,
+    setSelectedEmployee,
+  ] = useState(null);
 
   useEffect(() => {
     dispatch(getEmployees());
   }, [dispatch]);
 
   return (
-    <Container sx={{ mt: 5 }}>
+    <Container
+      maxWidth="xl"
+      sx={{ py: 4 }}
+    >
       <Typography
         variant="h4"
         sx={{ mb: 3 }}
       >
-        Employee Management System
+        Employee Management
       </Typography>
 
+      <SearchEmployee />
+
       <EmployeeForm
-        selectedEmployee={selectedEmployee}
-        setSelectedEmployee={setSelectedEmployee}
+        selectedEmployee={
+          selectedEmployee
+        }
+        setSelectedEmployee={
+          setSelectedEmployee
+        }
       />
 
-      {loading && <CircularProgress />}
-
-      {error && <p>{error}</p>}
-
-      {!loading && list.length === 0 && (
-        <p>No employees found</p>
+      {loading && (
+        <Box sx={{ mb: 2 }}>
+          <CircularProgress />
+        </Box>
       )}
 
-      <EmployeeTable
-        employees={list}
-        setSelectedEmployee={setSelectedEmployee}
-      />
+      {error && (
+        <Alert
+          severity="error"
+          sx={{ mb: 2 }}
+        >
+          {error}
+        </Alert>
+      )}
+
+      {!loading && (
+        <EmployeeTable
+          employees={list}
+          setSelectedEmployee={
+            setSelectedEmployee
+          }
+        />
+      )}
     </Container>
   );
 }
 
 export default App;
-
-// import { useDispatch,useSelector } from "react-redux";
-// import { useState,useEffect } from "react";
-// import { getEmployees } from "./redux/employeeSlice";
-// import EmployeeForm from "./components/EmployeeForm";
-// import EmployeeTable from "./components/EmployeeTable";
-
-
-// function App(){
-//   const dispatch=useDispatch();
-//   const {list,loading,error}=useSelector(
-//     (state)=>state.employees
-//   )
-//   const {selectedEmployee,setSelectedEmployee}=useState(null)
-
-// useEffect(()=>{
-//   dispatch(getEmployees());
-// })
-
-//    return(
-//        <>
-//        <h1>Employee Mangement System</h1>
-//        <EmployeeForm 
-//        selectedEmployee={selectedEmployee}
-//        setSelectedEmployee={setSelectedEmployee}
-//        />
-//        <EmployeeTable employees={list}
-//           setSelectedEmployee={setSelectedEmployee}      
-//        />
-//        </>
-//    )
-// }
-//  export default App
