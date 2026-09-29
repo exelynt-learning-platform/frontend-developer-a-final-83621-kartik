@@ -1,28 +1,37 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "../api/client";
 
-const API_URL =
-  "https://669b3f09276e45187d34eb4e.mockapi.io/api/v1/employee";
+const initialState = {
+  list: [],
+  searchEmployee: null,
+  loading: false,
+  error: null,
+  searchLoading: false,
+  searchError: null,
+};
 
 // Get all employees
 export const getEmployees = createAsyncThunk(
   "employees/getEmployees",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_URL);
+      const response = await api.get("/employee");
       return response.data;
     } catch (error) {
-      return rejectWithValue("Employee data not found");
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Employee data could not be loaded"
+      );
     }
   }
 );
 
-// Get employee by ID
+// Search employee by ID
 export const getEmployeeById = createAsyncThunk(
   "employees/getEmployeeById",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${API_URL}/${id}`);
+      const response = await api.get(`/employee/${id}`);
 
       if (!response.data || !response.data.id) {
         return rejectWithValue("Employee not found");
@@ -40,11 +49,13 @@ export const addEmployee = createAsyncThunk(
   "employees/addEmployee",
   async (employee, { rejectWithValue }) => {
     try {
-      const response = await axios.post(API_URL, employee);
-
+      const response = await api.post("/employee", employee);
       return response.data;
     } catch (error) {
-      return rejectWithValue("Employee not added");
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Employee could not be added"
+      );
     }
   }
 );
@@ -56,14 +67,17 @@ export const updateEmployee = createAsyncThunk(
     try {
       const { id, ...payload } = employee;
 
-      const response = await axios.put(
-        `${API_URL}/${id}`,
+      const response = await api.put(
+        `/employee/${id}`,
         payload
       );
 
       return response.data;
     } catch (error) {
-      return rejectWithValue("Employee not updated");
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Employee could not be updated"
+      );
     }
   }
 );
@@ -73,11 +87,13 @@ export const deleteEmployee = createAsyncThunk(
   "employees/deleteEmployee",
   async (id, { rejectWithValue }) => {
     try {
-      await axios.delete(`${API_URL}/${id}`);
-
+      await api.delete(`/employee/${id}`);
       return id;
     } catch (error) {
-      return rejectWithValue("Employee not deleted");
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Employee could not be deleted"
+      );
     }
   }
 );
@@ -85,17 +101,12 @@ export const deleteEmployee = createAsyncThunk(
 const employeeSlice = createSlice({
   name: "employees",
 
-  initialState: {
-    list: [],
-    searchEmployee: null,
-    loading: false,
-    error: null,
-  },
+  initialState,
 
   reducers: {
     clearSearch: (state) => {
       state.searchEmployee = null;
-      state.error = null;
+      state.searchError = null;
     },
 
     clearError: (state) => {
@@ -106,10 +117,7 @@ const employeeSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      // =========================
       // GET EMPLOYEES
-      // =========================
-
       .addCase(getEmployees.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -127,45 +135,36 @@ const employeeSlice = createSlice({
       .addCase(getEmployees.rejected, (state, action) => {
         state.loading = false;
         state.error =
-          action.payload || "Employee data not found";
-
-        state.list = [];
+          action.payload || "Unable to load employees";
       })
 
-      // =========================
-      // SEARCH EMPLOYEE
-      // =========================
-
+      // SEARCH
       .addCase(getEmployeeById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.searchLoading = true;
+        state.searchError = null;
         state.searchEmployee = null;
       })
 
       .addCase(getEmployeeById.fulfilled, (state, action) => {
-        state.loading = false;
-        state.error = null;
+        state.searchLoading = false;
+        state.searchError = null;
 
-        if (action.payload && action.payload.id) {
+        if (action.payload?.id) {
           state.searchEmployee = action.payload;
         } else {
           state.searchEmployee = null;
-          state.error = "Employee not found";
+          state.searchError = "Employee not found";
         }
       })
 
       .addCase(getEmployeeById.rejected, (state, action) => {
-        state.loading = false;
+        state.searchLoading = false;
         state.searchEmployee = null;
-
-        state.error =
+        state.searchError =
           action.payload || "Employee not found";
       })
 
-      // =========================
-      // ADD EMPLOYEE
-      // =========================
-
+      // ADD
       .addCase(addEmployee.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -176,21 +175,20 @@ const employeeSlice = createSlice({
         state.error = null;
 
         if (action.payload) {
-          state.list.push(action.payload);
+          state.list = [
+            ...state.list,
+            action.payload,
+          ];
         }
       })
 
       .addCase(addEmployee.rejected, (state, action) => {
         state.loading = false;
-
         state.error =
-          action.payload || "Employee not added";
+          action.payload || "Employee could not be added";
       })
 
-      // =========================
-      // UPDATE EMPLOYEE
-      // =========================
-
+      // UPDATE
       .addCase(updateEmployee.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -213,15 +211,12 @@ const employeeSlice = createSlice({
 
       .addCase(updateEmployee.rejected, (state, action) => {
         state.loading = false;
-
         state.error =
-          action.payload || "Employee not updated";
+          action.payload ||
+          "Employee could not be updated";
       })
 
-      // =========================
-      // DELETE EMPLOYEE
-      // =========================
-
+      // DELETE
       .addCase(deleteEmployee.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -240,9 +235,9 @@ const employeeSlice = createSlice({
 
       .addCase(deleteEmployee.rejected, (state, action) => {
         state.loading = false;
-
         state.error =
-          action.payload || "Employee not deleted";
+          action.payload ||
+          "Employee could not be deleted";
       });
   },
 });

@@ -1,14 +1,17 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-
-const API_URL =
-  "https://669b3f09276e45187d34eb4e.mockapi.io/api/v1/country";
+import api from "../api/client";
 
 export const getCountries = createAsyncThunk(
   "countries/getCountries",
-  async () => {
-    const response = await axios.get(API_URL);
-    return response.data;
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/country");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        "Country data could not be loaded"
+      );
+    }
   }
 );
 
@@ -25,19 +28,24 @@ const countrySlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-
       .addCase(getCountries.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
 
       .addCase(getCountries.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = action.payload;
+        state.error = null;
+
+        state.list = Array.isArray(action.payload)
+          ? action.payload
+          : [];
       })
 
-      .addCase(getCountries.rejected, (state) => {
+      .addCase(getCountries.rejected, (state, action) => {
         state.loading = false;
-        state.error = "Country data not found";
+        state.error =
+          action.payload || "Country data not found";
       });
   },
 });

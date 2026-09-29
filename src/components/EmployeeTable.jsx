@@ -1,8 +1,4 @@
-import { useDispatch } from "react-redux";
-
-import {
-  deleteEmployee,
-} from "../redux/employeeSlice";
+import { useState } from "react";
 
 import {
   Table,
@@ -13,102 +9,153 @@ import {
   TableRow,
   Paper,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
 } from "@mui/material";
 
 function EmployeeTable({
-  employees,
-  setSelectedEmployee,
+  employees = [],
+  onEdit,
+  onDelete,
+  loading,
 }) {
-  const dispatch = useDispatch();
+  const [deleteId, setDeleteId] = useState(null);
 
-  const handleDelete = (id) => {
-    const result = window.confirm(
-      "Are you sure you want to delete this employee?"
-    );
-
-    if (result) {
-      dispatch(deleteEmployee(id));
-    }
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
   };
 
-  if (employees.length === 0) {
-    return <p>No employees found.</p>;
+  const handleClose = () => {
+    setDeleteId(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deleteId) {
+      await onDelete(deleteId);
+    }
+
+    setDeleteId(null);
+  };
+
+  if (loading) {
+    return (
+      <Typography sx={{ mt: 2 }}>
+        Loading employees...
+      </Typography>
+    );
+  }
+
+  if (!employees.length) {
+    return (
+      <Typography sx={{ mt: 2 }}>
+        No employees found.
+      </Typography>
+    );
   }
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>ID</TableCell>
-            <TableCell>Name</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Mobile</TableCell>
-            <TableCell>Country</TableCell>
-            <TableCell>State</TableCell>
-            <TableCell>District</TableCell>
-            <TableCell>Action</TableCell>
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {employees.map((employee) => (
-            <TableRow key={employee.id}>
-              <TableCell>
-                {employee.id}
-              </TableCell>
-
-              <TableCell>
-                {employee.name}
-              </TableCell>
-
-              <TableCell>
-                {employee.email}
-              </TableCell>
-
-              <TableCell>
-                {employee.mobile}
-              </TableCell>
-
-              <TableCell>
-                {employee.country}
-              </TableCell>
-
-              <TableCell>
-                {employee.state}
-              </TableCell>
-
-              <TableCell>
-                {employee.district}
-              </TableCell>
-
-              <TableCell>
-                <Button
-                  onClick={() =>
-                    setSelectedEmployee(
-                      employee
-                    )
-                  }
-                >
-                  Edit
-                </Button>
-
-                <Button
-                  color="error"
-                  onClick={() =>
-                    handleDelete(
-                      employee.id
-                    )
-                  }
-                >
-                  Delete
-                </Button>
-              </TableCell>
+    <>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Mobile</TableCell>
+              <TableCell>Country</TableCell>
+              <TableCell>State</TableCell>
+              <TableCell>District</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+
+          <TableBody>
+            {employees.map((employee) => (
+              <TableRow key={employee.id}>
+                <TableCell>
+                  {employee.id}
+                </TableCell>
+
+                <TableCell>
+                  {employee.name}
+                </TableCell>
+
+                <TableCell>
+                  {employee.email}
+                </TableCell>
+
+                <TableCell>
+                  {employee.mobile}
+                </TableCell>
+
+                <TableCell>
+                  {employee.country}
+                </TableCell>
+
+                <TableCell>
+                  {employee.state}
+                </TableCell>
+
+                <TableCell>
+                  {employee.district}
+                </TableCell>
+
+                <TableCell>
+                  <Button
+                    size="small"
+                    onClick={() => onEdit(employee)}
+                  >
+                    Edit
+                  </Button>
+
+                  <Button
+                    size="small"
+                    color="error"
+                    onClick={() =>
+                      handleDeleteClick(employee.id)
+                    }
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Dialog
+        open={deleteId !== null}
+        onClose={handleClose}
+      >
+        <DialogTitle>
+          Delete Employee
+        </DialogTitle>
+
+        <DialogContent>
+          Are you sure you want to delete this
+          employee?
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleClose}>
+            Cancel
+          </Button>
+
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleConfirmDelete}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 
