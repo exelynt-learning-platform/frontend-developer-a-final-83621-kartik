@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 
 import {
@@ -11,7 +11,6 @@ import {
   Button,
   Box,
 } from "@mui/material";
-import { useEffect } from "react";
 
 function EmployeeForm({ selectedEmployee, setSelectedEmployee }) {
   const dispatch = useDispatch();
@@ -39,12 +38,15 @@ function EmployeeForm({ selectedEmployee, setSelectedEmployee }) {
       [event.target.name]: event.target.value,
     });
   };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+    if (!validate()) {
+      return;
+    }
 
     if (selectedEmployee) {
-      dispatch(
+      await dispatch(
         updateEmployee({
           id: selectedEmployee.id,
           ...form,
@@ -52,18 +54,16 @@ function EmployeeForm({ selectedEmployee, setSelectedEmployee }) {
       );
 
       setSelectedEmployee(null);
+      setForm(initialForm);
+      setErrors({});
     } else {
-      dispatch(addEmployee(form));
+      await dispatch(addEmployee(form));
+
+      setForm(initialForm);
+      setErrors({});
+      setSelectedEmployee(null);
     }
-
-    setForm({
-      name: "",
-      email: "",
-      mobile: "",
-      country: "",
-    });
   };
-
   return (
     <Box
       component="form"
