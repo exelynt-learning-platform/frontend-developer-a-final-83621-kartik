@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/employees";
+const API_URL = "https://669b3f09276e45187d34eb4e.mockapi.io/api/v1/employee";
 
 // Get employees
 export const getEmployees = createAsyncThunk(
@@ -13,13 +13,13 @@ export const getEmployees = createAsyncThunk(
 );
 
 // Add employee
-// export const addEmployee = createAsyncThunk(
-//   "employees/addEmployee",
-//   async (employee) => {
-//     const response = await axios.post(API_URL, employee);
-//     return response.data;
-//   }
-// );
+export const addEmployee = createAsyncThunk(
+  "employees/addEmployee",
+  async (employee) => {
+    const response = await axios.post(API_URL, employee);
+    return response.data;
+  }
+);
 
 // export const addEmployee = createAsyncThunk(
 //   "employees/addEmployee",
@@ -42,27 +42,27 @@ export const getEmployees = createAsyncThunk(
 // );
 
 
-export const addEmployee = createAsyncThunk(
-  "employees/addEmployee",
-  async (employee) => {
-    const response = await axios.get(API_URL);
+// export const addEmployee = createAsyncThunk(
+//   "employees/addEmployee",
+//   async (employee) => {
+//     const response = await axios.get(API_URL);
 
-    const employees = response.data;
+//     const employees = response.data;
 
-    const newId = String(employees.length + 1);
+//     const newId = String(employees.length + 1);
 
-    const newEmployee = {
-      id: newId,
-      ...employee,
-    };
+//     const newEmployee = {
+//       id: newId,
+//       ...employee,
+//     };
 
-    console.log("Sending:", newEmployee);
+//     console.log("Sending:", newEmployee);
 
-    const result = await axios.post(API_URL, newEmployee);
+//     const result = await axios.post(API_URL, newEmployee);
 
-    return result.data;
-  }
-);
+//     return result.data;
+//   }
+// );
 // Update employee
 export const updateEmployee = createAsyncThunk(
   "employees/updateEmployee",

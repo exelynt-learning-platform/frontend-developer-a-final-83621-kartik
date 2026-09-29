@@ -1,34 +1,34 @@
-{
-  "employees": [
-    {
-      "id": "1",
-      "name": "Kartik",
-      "email": "kartik@gmail.com",
-      "mobile": "9876543210",
-      "country": "India"
-    },
-    {
-      "id": "2",
-      "name": "Rahul",
-      "email": "rahul@gmail.com",
-      "mobile": "9876543211",
-      "country": "Japan"
-    },
-    {
-      "id": "3",
-      "name": "kartik",
-      "email": "xyz@gmail.com",
-      "mobile": "9033099089",
-      "country": "India"
-    },
-    {
-      "id": "4",
-      "name": "djodj",
-      "email": "ssj@gmail.com",
-      "mobile": "9033890909",
-      "country": "Brasil"
-    }
+// {
+//   "employees": [
+//     {
+//       "id": "1",
+//       "name": "Kartik",
+//       "email": "kartik@gmail.com",
+//       "mobile": "9876543210",
+//       "country": "India"
+//     },
+//     {
+//       "id": "2",
+//       "name": "Rahul",
+//       "email": "rahul@gmail.com",
+//       "mobile": "9876543211",
+//       "country": "Japan"
+//     },
+//     {
+//       "id": "3",
+//       "name": "kartik",
+//       "email": "xyz@gmail.com",
+//       "mobile": "9033099089",
+//       "country": "India"
+//     },
+//     {
+//       "id": "4",
+//       "name": "djodj",
+//       "email": "ssj@gmail.com",
+//       "mobile": "9033890909",
+//       "country": "Brasil"
+//     }
     
-  ],
-  "$schema": "./node_modules/json-server/schema.json"
-}
+//   ],
+//   "$schema": "./node_modules/json-server/schema.json"
+// }
