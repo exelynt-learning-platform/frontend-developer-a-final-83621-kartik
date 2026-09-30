@@ -1,18 +1,18 @@
 import { useState } from "react";
-
 import {
+  Alert,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Typography,
 } from "@mui/material";
 
@@ -20,24 +20,55 @@ function EmployeeTable({
   employees = [],
   onEdit,
   onDelete,
-  loading,
+  loading = false,
 }) {
-  const [deleteId, setDeleteId] = useState(null);
+  const [deleteEmployee, setDeleteEmployee] =
+    useState(null);
 
-  const handleDeleteClick = (id) => {
-    setDeleteId(id);
+  const [deleteLoading, setDeleteLoading] =
+    useState(false);
+
+  const [deleteError, setDeleteError] =
+    useState("");
+
+  const handleDeleteClick = (employee) => {
+    setDeleteEmployee(employee);
+    setDeleteError("");
   };
 
   const handleClose = () => {
-    setDeleteId(null);
+    if (!deleteLoading) {
+      setDeleteEmployee(null);
+      setDeleteError("");
+    }
   };
 
   const handleConfirmDelete = async () => {
-    if (deleteId) {
-      await onDelete(deleteId);
+    if (!deleteEmployee) {
+      return;
     }
 
-    setDeleteId(null);
+    try {
+      setDeleteLoading(true);
+      setDeleteError("");
+
+      await onDelete(deleteEmployee.id);
+
+      // Close dialog only after successful delete
+      setDeleteEmployee(null);
+    } catch (error) {
+      console.error(
+        "Delete employee failed:",
+        error
+      );
+
+      setDeleteError(
+        error?.message ||
+          "Unable to delete employee. Please try again."
+      );
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   if (loading) {
@@ -48,7 +79,7 @@ function EmployeeTable({
     );
   }
 
-  if (!employees.length) {
+  if (!employees || employees.length === 0) {
     return (
       <Typography sx={{ mt: 2 }}>
         No employees found.
@@ -107,7 +138,9 @@ function EmployeeTable({
                 <TableCell>
                   <Button
                     size="small"
-                    onClick={() => onEdit(employee)}
+                    onClick={() =>
+                      onEdit(employee)
+                    }
                   >
                     Edit
                   </Button>
@@ -116,7 +149,7 @@ function EmployeeTable({
                     size="small"
                     color="error"
                     onClick={() =>
-                      handleDeleteClick(employee.id)
+                      handleDeleteClick(employee)
                     }
                   >
                     Delete
@@ -129,7 +162,7 @@ function EmployeeTable({
       </TableContainer>
 
       <Dialog
-        open={deleteId !== null}
+        open={deleteEmployee !== null}
         onClose={handleClose}
       >
         <DialogTitle>
@@ -137,12 +170,29 @@ function EmployeeTable({
         </DialogTitle>
 
         <DialogContent>
-          Are you sure you want to delete this
-          employee?
+          <Typography>
+            Are you sure you want to delete{" "}
+            <strong>
+              {deleteEmployee?.name}
+            </strong>
+            ?
+          </Typography>
+
+          {deleteError && (
+            <Alert
+              severity="error"
+              sx={{ mt: 2 }}
+            >
+              {deleteError}
+            </Alert>
+          )}
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={handleClose}>
+          <Button
+            onClick={handleClose}
+            disabled={deleteLoading}
+          >
             Cancel
           </Button>
 
@@ -150,8 +200,11 @@ function EmployeeTable({
             color="error"
             variant="contained"
             onClick={handleConfirmDelete}
+            disabled={deleteLoading}
           >
-            Delete
+            {deleteLoading
+              ? "Deleting..."
+              : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>

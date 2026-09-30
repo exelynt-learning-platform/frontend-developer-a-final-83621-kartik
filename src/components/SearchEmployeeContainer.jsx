@@ -1,17 +1,22 @@
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import {
+  useDispatch,
+  useSelector,
+} from "react-redux";
+
+import SearchEmployee from "./SearchEmployee";
 
 import {
   getEmployeeById,
   clearSearch,
 } from "../redux/employeeSlice";
 
-import SearchEmployee from "./SearchEmployee";
-
 function SearchEmployeeContainer() {
   const dispatch = useDispatch();
 
   const [searchId, setSearchId] = useState("");
+  const [validationError, setValidationError] =
+    useState("");
 
   const {
     searchEmployee,
@@ -22,13 +27,32 @@ function SearchEmployeeContainer() {
   );
 
   const handleSearch = (id) => {
-    dispatch(getEmployeeById(id));
+    const value = String(id).trim();
+
+    if (!/^[1-9]\d*$/.test(value)) {
+      setValidationError(
+        "Please enter a valid employee ID"
+      );
+
+      dispatch(clearSearch());
+      return;
+    }
+
+    setValidationError("");
+    dispatch(getEmployeeById(value));
   };
 
   const handleClear = () => {
     setSearchId("");
+    setValidationError("");
     dispatch(clearSearch());
   };
+
+  const error =
+    validationError || searchError;
+
+  const notFound =
+    searchError === "Employee not found";
 
   return (
     <SearchEmployee
@@ -38,7 +62,8 @@ function SearchEmployeeContainer() {
       onClear={handleClear}
       employee={searchEmployee}
       loading={searchLoading}
-      error={searchError}
+      error={error}
+      notFound={notFound}
     />
   );
 }

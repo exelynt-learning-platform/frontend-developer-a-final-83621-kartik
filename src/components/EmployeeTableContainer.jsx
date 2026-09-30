@@ -1,29 +1,51 @@
-import { useDispatch, useSelector } from "react-redux";
+import {
+  useDispatch,
+  useSelector,
+} from "react-redux";
+
+import EmployeeTable from "./EmployeeTable";
 
 import {
   deleteEmployee,
 } from "../redux/employeeSlice";
 
-import EmployeeTable from "./EmployeeTable";
-
-function EmployeeTableContainer({ onEdit }) {
+function EmployeeTableContainer({
+  onEdit,
+}) {
   const dispatch = useDispatch();
 
   const {
     list,
-    loading,
+    listLoading,
   } = useSelector(
     (state) => state.employees
   );
 
   const handleDelete = async (id) => {
-    await dispatch(deleteEmployee(id)).unwrap();
+    try {
+      await dispatch(
+        deleteEmployee(id)
+      ).unwrap();
+    } catch (error) {
+      console.error(
+        "Delete failed:",
+        error
+      );
+
+      // Send error back to EmployeeTable
+      // so the dialog stays open.
+      throw new Error(
+        typeof error === "string"
+          ? error
+          : "Unable to delete employee"
+      );
+    }
   };
 
   return (
     <EmployeeTable
       employees={list || []}
-      loading={loading}
+      loading={listLoading}
       onEdit={onEdit}
       onDelete={handleDelete}
     />

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import {
+  Alert,
   Box,
-  TextField,
   Button,
   MenuItem,
   Paper,
+  TextField,
   Typography,
 } from "@mui/material";
 
@@ -19,8 +20,10 @@ const initialForm = {
 
 function EmployeeForm({
   selectedEmployee,
-  countries,
-  loading,
+  countries = [],
+  countryLoading = false,
+  countryError = "",
+  loading = false,
   onAdd,
   onUpdate,
   onCancel,
@@ -28,6 +31,7 @@ function EmployeeForm({
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
 
+  // Fill form when editing an employee
   useEffect(() => {
     if (selectedEmployee) {
       setForm({
@@ -62,50 +66,60 @@ function EmployeeForm({
   const validate = () => {
     const newErrors = {};
 
-    if (!form.name.trim()) {
+    const name = form.name.trim();
+    const email = form.email.trim();
+    const mobile = form.mobile.trim();
+    const country = form.country.trim();
+    const state = form.state.trim();
+    const district = form.district.trim();
+
+    // Name validation
+    if (!name) {
       newErrors.name = "Name is required";
-    } else if (
-      form.name.trim().length < 2 ||
-      form.name.trim().length > 50
-    ) {
+    } else if (name.length < 2 || name.length > 50) {
       newErrors.name =
         "Name must be between 2 and 50 characters";
     }
 
-    if (!form.email.trim()) {
+    // Email validation
+    if (!email) {
       newErrors.email = "Email is required";
+    } else if (email.length > 100) {
+      newErrors.email =
+        "Email must not exceed 100 characters";
     } else if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     ) {
       newErrors.email = "Enter a valid email";
     }
 
-    if (!form.mobile.trim()) {
+    // Mobile validation
+    if (!mobile) {
       newErrors.mobile = "Mobile is required";
-    } else if (!/^\d{10}$/.test(form.mobile)) {
+    } else if (!/^\d{10}$/.test(mobile)) {
       newErrors.mobile =
-        "Mobile must contain 10 digits";
+        "Mobile must contain exactly 10 digits";
     }
 
-    if (!form.country) {
+    // Country validation
+    if (!country) {
       newErrors.country = "Country is required";
     }
 
-    if (!form.state.trim()) {
+    // State validation
+    if (!state) {
       newErrors.state = "State is required";
-    } else if (
-      form.state.trim().length < 2 ||
-      form.state.trim().length > 50
-    ) {
+    } else if (state.length < 2 || state.length > 50) {
       newErrors.state =
         "State must be between 2 and 50 characters";
     }
 
-    if (!form.district.trim()) {
+    // District validation
+    if (!district) {
       newErrors.district = "District is required";
     } else if (
-      form.district.trim().length < 2 ||
-      form.district.trim().length > 50
+      district.length < 2 ||
+      district.length > 50
     ) {
       newErrors.district =
         "District must be between 2 and 50 characters";
@@ -123,20 +137,36 @@ function EmployeeForm({
       return;
     }
 
+    const employeeData = {
+      name: form.name.trim(),
+      email: form.email.trim(),
+      mobile: form.mobile.trim(),
+      country: form.country.trim(),
+      state: form.state.trim(),
+      district: form.district.trim(),
+    };
+
     try {
       if (selectedEmployee) {
         await onUpdate({
           id: selectedEmployee.id,
-          ...form,
+          ...employeeData,
         });
+
+        // Parent clears selectedEmployee after successful update.
+        // The useEffect above then resets the form.
       } else {
-        await onAdd(form);
+        await onAdd(employeeData);
+
+        setForm(initialForm);
       }
 
-      setForm(initialForm);
       setErrors({});
     } catch (error) {
-      // Redux handles the error
+      console.error(
+        "Employee save failed:",
+        error
+      );
     }
   };
 
@@ -157,6 +187,7 @@ function EmployeeForm({
       <Box
         component="form"
         onSubmit={handleSubmit}
+        noValidate
       >
         <TextField
           fullWidth
@@ -167,17 +198,24 @@ function EmployeeForm({
           error={Boolean(errors.name)}
           helperText={errors.name}
           margin="normal"
+          inputProps={{
+            maxLength: 50,
+          }}
         />
 
         <TextField
           fullWidth
           label="Email"
           name="email"
+          type="email"
           value={form.email}
           onChange={handleChange}
           error={Boolean(errors.email)}
           helperText={errors.email}
           margin="normal"
+          inputProps={{
+            maxLength: 100,
+          }}
         />
 
         <TextField
@@ -189,6 +227,9 @@ function EmployeeForm({
           error={Boolean(errors.mobile)}
           helperText={errors.mobile}
           margin="normal"
+          inputProps={{
+            maxLength: 10,
+          }}
         />
 
         <TextField
@@ -200,26 +241,42 @@ function EmployeeForm({
           onChange={handleChange}
           error={Boolean(errors.country)}
           helperText={
-            errors.country || "Select country"
+            errors.country ||
+            (countryLoading
+              ? "Loading countries..."
+              : "Select country")
           }
           margin="normal"
+          disabled={countryLoading}
         >
-          {countries.map((country) => {
-            const countryName =
-              country.name ||
-              country.country ||
-              "";
+          {countries.length > 0 ? (
+            countries.map((country) => {
+              const countryName =
+                country.name ||
+                country.country ||
+                "";
 
-            return (
-              <MenuItem
-                key={country.id || countryName}
-                value={countryName}
-              >
-                {countryName}
-              </MenuItem>
-            );
-          })}
+              return (
+                <MenuItem
+                  key={country.id || countryName}
+                  value={countryName}
+                >
+                  {countryName}
+                </MenuItem>
+              );
+            })
+          ) : (
+            <MenuItem disabled>
+              No countries available
+            </MenuItem>
+          )}
         </TextField>
+
+        {countryError && (
+          <Alert severity="error" sx={{ mt: 1 }}>
+            {countryError}
+          </Alert>
+        )}
 
         <TextField
           fullWidth
@@ -230,6 +287,9 @@ function EmployeeForm({
           error={Boolean(errors.state)}
           helperText={errors.state}
           margin="normal"
+          inputProps={{
+            maxLength: 50,
+          }}
         />
 
         <TextField
@@ -241,14 +301,22 @@ function EmployeeForm({
           error={Boolean(errors.district)}
           helperText={errors.district}
           margin="normal"
+          inputProps={{
+            maxLength: 50,
+          }}
         />
 
-        <Box sx={{ mt: 2 }}>
+        <Box
+          sx={{
+            mt: 2,
+            display: "flex",
+            gap: 1,
+          }}
+        >
           <Button
             type="submit"
             variant="contained"
             disabled={loading}
-            sx={{ mr: 1 }}
           >
             {loading
               ? "Saving..."
